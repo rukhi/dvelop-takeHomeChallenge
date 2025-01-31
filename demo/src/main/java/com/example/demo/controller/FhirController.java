@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import ca.uhn.fhir.parser.IParser;
 
 import com.example.demo.service.ProprietaryApiService;
 import com.example.demo.service.PatientService;
+import com.example.demo.service.PersonSchemaService;
 import com.example.demo.dto.PersonDTO;
 
 import com.example.demo.util.FhirResponseHandler;
@@ -34,6 +36,8 @@ public class FhirController {
     private final FhirResponseHandler fhirResponseHandler;
     private final IParser jsonParser;
 
+    private final PersonSchemaService personSchemaService;
+
     /**
      * Konstruktor-Injektion für bessere Testbarkeit
      * Spring Boot injiziert automatisch die Abhängigkeiten.
@@ -48,12 +52,14 @@ public class FhirController {
             IParser jsonParser,
             ProprietaryApiService proprietaryApiService,
             PatientService patientService,
-            FhirResponseHandler fhirResponseHandler) {
+            FhirResponseHandler fhirResponseHandler,
+            PersonSchemaService personSchemaService) {
         this.fhirContext = fhirContext;
         this.jsonParser = jsonParser;
         this.proprietaryApiService = proprietaryApiService;
         this.patientService = patientService;
         this.fhirResponseHandler = fhirResponseHandler;
+        this.personSchemaService = personSchemaService;
     }
 
     /**
@@ -100,6 +106,25 @@ public class FhirController {
             // Bianca Rech:
             // mein innerer Monk würde hier gerne genauere Fehlerbehandlung einbauen,
             // aber das wurde ja in den Anforderungen explizit nicht gefordert ;)
+        }
+    }
+
+    /**
+     * Gibt das JSON-Schema für die Person-Ressource zurück.
+     * 
+     * @return
+     *         "quick & dirty" in anbetracht der Zeit ;)
+     *         sollte vllt. besser auch eigene Klasse bekommen
+     *         Beispiel GET http://localhost:8080/fhir/Person/schema
+     */
+    @GetMapping("/Person/schema")
+    public ResponseEntity<String> getPersonSchema() {
+        try {
+            String schema = personSchemaService.getPersonSchema();
+            return ResponseEntity.ok(schema);
+        } catch (Exception e) {
+            logger.severe("Error retrieving schema: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Could not load schema.");
         }
     }
 
