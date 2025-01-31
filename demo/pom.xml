@@ -10,7 +10,7 @@
     <!-- Artefakt-ID des Projekts -->
     <artifactId>demo</artifactId>
     <!-- Versionsnummer des Projekts -->
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0</version>
     <!-- Verpackungstyp des Projekts -->
     <packaging>jar</packaging>
     <!-- Name des Projekts -->

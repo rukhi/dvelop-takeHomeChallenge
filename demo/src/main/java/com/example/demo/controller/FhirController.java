@@ -8,10 +8,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
 
 import com.example.demo.service.ProprietaryApiService;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 
 import java.util.stream.Collectors;
 import java.util.logging.Level;
