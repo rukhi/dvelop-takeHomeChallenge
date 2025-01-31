@@ -1,9 +1,13 @@
 package com.example.demo.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import com.example.demo.dto.PersonDTO;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,8 +17,16 @@ public class ProprietaryApiService {
 
     private static final Logger logger = Logger.getLogger(ProprietaryApiService.class.getName());
 
-    // Erzeugt ein RestTemplate-Objekt für HTTP-Anfragen
-    private final RestTemplate restTemplate = new RestTemplate();
+     // WebClient für nicht-blockierende API-Aufrufe
+    private final WebClient webClient;
+
+    // API-URL aus Konfigurationsdatei beziehen
+    @Value("${api.proprietary.url}")
+    private String apiUrl;
+
+    public ProprietaryApiService(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.baseUrl(apiUrl).build();
+    }
 
      /**
      * Sendet Patientendaten an eine proprietäre API.
@@ -25,20 +37,19 @@ public class ProprietaryApiService {
      * @return true, wenn die API-Anfrage erfolgreich war; false, wenn ein Fehler aufgetreten ist
      */
 
-    public boolean sendPatientData(String firstName, String lastName, String birthDate) {
+    public boolean sendPatientData(PersonDTO personDTO) {
         try {
-             // URL der proprietären API
-            String url = "http://localhost:3001/fhir/Person";
-            // Erstellen des Anfragekörpers mit den Patientendaten
-            String requestBody = String.format("{\"firstName\":\"%s\",\"lastName\":\"%s\",\"birthDate\":\"%s\"}",
-                                                firstName, lastName, birthDate);
-
             // Loggt die URL und den Anfragekörper
-            logger.info("Sending request to proprietary API: " + url);
-            logger.info("Request body: " + requestBody);
+            logger.info("Sending request to proprietary API: " + apiUrl);
+            logger.info("Request body: " + personDTO);
 
-            // Sendet eine POST-Anfrage an die proprietäre API
-            ResponseEntity<String> response = restTemplate.postForEntity(url, requestBody, String.class);
+            // Sendet eine POST-Anfrage an die proprietäre API mit WebClient
+            ResponseEntity<String> response = webClient.post()
+                    .uri(apiUrl)
+                    .bodyValue(personDTO)
+                    .retrieve()
+                    .toEntity(String.class)
+                    .block();
 
             // Loggt den Statuscode der Antwort
             logger.info("Response from proprietary API: " + response.getStatusCode());

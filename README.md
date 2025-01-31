@@ -51,7 +51,7 @@ Verwenden Sie Postman, um Ihre API-Endpunkte zu testen. Folgen Sie diesen Schrit
 
 3. Anfrage konfigurieren: <br />
     Wählen Sie den HTTP-Methodentyp `POST` aus. <br />
-    Geben Sie die URL Ihres Endpunkts ein: `http://localhost:8080/fhir/Patient`. <br />
+    Geben Sie die URL Ihres Endpunkts ein: `http://localhost:8080/fhir/Person`. <br />
     Stellen Sie sicher, dass der Endpunkt Ihrer laufenden Spring Boot Anwendung entspricht.
 
 4. Header hinzufügen: <br />
@@ -82,8 +82,27 @@ Verwenden Sie die Beispiel-FHIR-Ressource `Beispiel-FHIR-Ressource-Patient.json`
 
 Das Projekt ist in mehrere Pakete unterteilt, um eine klare Trennung der Verantwortlichkeiten zu gewährleisten: <br />
 
-    controller: Enthält den FHIR Controller. 
-    service: Beinhaltet die Logik zur Verarbeitung der FHIR-Ressourcen.
+    controller: Enthält den FHIR Controller.  
+        - FhirController.java: Verarbeitet FHIR-Anfragen und leitet sie an die Service-Schicht weiter.  
+
+    dto: Beinhaltet Data Transfer Objects (DTOs) für den Datentransfer.  
+        - PersonDTO.java: Repräsentiert eine Person für die API-Kommunikation.  
+
+    service: Beinhaltet die Geschäftslogik zur Verarbeitung von FHIR-Ressourcen und externen APIs.  
+        - PatientService.java: Verarbeitet Patientendaten und validiert FHIR-Objekte.  
+        - PersonSchemaService.java: Validiert JSON-Daten gegen ein Schema.  
+        - ProprietaryApiService.java: Kommuniziert mit einer externen proprietären API.  
+
+    util: Helferklassen zur Unterstützung der Hauptlogik.  
+        - FhirMessages.java: Enthält vordefinierte FHIR-Fehlermeldungen.  
+        - FhirResponseHandler.java: Erstellt standardisierte FHIR-Antworten.  
+
+    config: Beinhaltet Konfigurationsklassen.  
+
+    resources: Enthält Konfigurations- und Schema-Dateien.  
+        - application.properties: Konfigurationsdatei für die Anwendung.  
+        - schemas/Person-JSON-Schema.json: JSON-Schema zur Validierung von Personendaten.  
+
 
 ## Fehlerbehandlung
 Die Anwendung behandelt Fehlerfälle, indem sie Statuscodes interpretiert und entsprechende Nachrichten zurückgibt: <br />
