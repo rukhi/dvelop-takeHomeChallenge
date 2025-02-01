@@ -9,59 +9,54 @@ import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import ca.uhn.fhir.context.FhirContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
- * Utility class to handle FHIR-compliant responses, including error handling and success messages.
- * Provides standardized OperationOutcome responses for errors and success cases.
+ * Utility-Klasse zur Erstellung standardisierter FHIR-konformer Antworten.
+ * Diese Klasse stellt Methoden zur Fehler- und Erfolgsmeldung bereit, die 
+ * als FHIR `OperationOutcome` zurückgegeben werden. 
+ *
+ * Diese Klasse ist als reine Utility-Klasse konzipiert und kann nicht instanziiert werden.
  */
-@Component
-public class FhirResponseHandler {
+public final class FhirResponseHandler {
 
     private static final Logger logger = Logger.getLogger(FhirResponseHandler.class.getName());
-    private final FhirContext fhirContext;
-
-    /**
-     * Constructor injection for FhirContext to ensure singleton usage.
-     *
-     * @param fhirContext Singleton instance of FhirContext
-     */
-    @Autowired 
-    public FhirResponseHandler(FhirContext fhirContext) {
-        this.fhirContext = fhirContext;
+    private static final FhirContext fhirContext = FhirContext.forR4(); // Singleton Instanz von FhirContext
+    
+    private FhirResponseHandler() {
+        throw new UnsupportedOperationException("Utility class - cannot be instantiated.");
     }
 
-    /**
-     * Handles unexpected exceptions by logging and returning a standardized FHIR OperationOutcome error response.
+     /**
+     * Behandelt unerwartete Ausnahmen, indem sie protokolliert und eine standardisierte 
+     * FHIR `OperationOutcome`-Fehlermeldung zurückgegeben wird.
      *
-     * @param e       The exception that occurred.
-     * @param message The custom error message to return.
-     * @return A ResponseEntity containing a FHIR OperationOutcome error message with HTTP 500 status.
+     * @param e       Die aufgetretene Ausnahme.
+     * @param message Die benutzerdefinierte Fehlermeldung, die zurückgegeben werden soll.
+     * @return Eine ResponseEntity mit einer FHIR `OperationOutcome`-Fehlermeldung und HTTP-Status 500 (Interner Serverfehler).
      */
-    public ResponseEntity<String> handleException(Exception e, String message) {
+    public static ResponseEntity<String> handleException(Exception e, String message) {
         logger.log(Level.SEVERE, message, e);
         return createOperationOutcomeResponse(message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
-     * Handles validation failures, typically returning HTTP 400 Bad Request.
+     * Behandelt Validierungsfehler und gibt in der Regel HTTP 400 (Bad Request) zurück.
      *
-     * @param message The validation error message.
-     * @return A ResponseEntity containing a FHIR OperationOutcome validation error with HTTP 400 status.
+     * @param message Die Fehlermeldung zur Validierung.
+     * @return Eine ResponseEntity mit einer FHIR `OperationOutcome`-Validierungsfehlermeldung und HTTP-Status 400 (Bad Request).
      */
-    public ResponseEntity<String> handleValidationFailure(String message) {
+    public static ResponseEntity<String> handleValidationFailure(String message) {
         logger.warning(message);
         return createOperationOutcomeResponse(message, HttpStatus.BAD_REQUEST);
     }
 
     /**
-     * Generates a FHIR-compliant success response using OperationOutcome.
+     * Erstellt eine FHIR-konforme Erfolgsmeldung in Form eines `OperationOutcome`.
      *
-     * @param message The success message to return.
-     * @return A ResponseEntity containing a FHIR OperationOutcome success message with HTTP 201 status.
+     * @param message Die Erfolgsmeldung, die zurückgegeben werden soll.
+     * @return Eine ResponseEntity mit einer FHIR `OperationOutcome`-Erfolgsmeldung und HTTP-Status 201 (Created).
      */
-    public ResponseEntity<String> createSuccessResponse(String message) {
+    public static ResponseEntity<String> createSuccessResponse(String message) {
         OperationOutcome outcome = new OperationOutcome();
         outcome.addIssue()
             .setSeverity(IssueSeverity.INFORMATION)
@@ -73,13 +68,13 @@ public class FhirResponseHandler {
     }
 
     /**
-     * Helper method to generate a FHIR OperationOutcome response with a given HTTP status.
+     * Helper Methode zur Erstellung einer FHIR `OperationOutcome`-Antwort mit einem bestimmten HTTP-Status.
      *
-     * @param message The error message.
-     * @param status  The HTTP status code to return.
-     * @return A ResponseEntity containing a FHIR OperationOutcome error message with the specified status.
+     * @param message Die Fehlermeldung.
+     * @param status  Der HTTP-Statuscode, der zurückgegeben werden soll.
+     * @return Eine ResponseEntity mit einer FHIR `OperationOutcome`-Fehlermeldung und dem angegebenen Statuscode.
      */
-    private ResponseEntity<String> createOperationOutcomeResponse(String message, HttpStatus status) {
+    private static ResponseEntity<String> createOperationOutcomeResponse(String message, HttpStatus status) {
         OperationOutcome outcome = new OperationOutcome();
         outcome.addIssue()
             .setSeverity(IssueSeverity.ERROR)
