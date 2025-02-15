@@ -39,10 +39,28 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- HAPI FHIR-Abhängigkeit-->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-base</artifactId>
+            <version>5.4.0</version>
+        </dependency>
         <!-- HAPI FHIR-Abhängigkeit für FHIR-R4-Strukturen -->
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-structures-r4</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+        <!-- HAPI FHIR-Abhängigkeiten für FHIR Validation-->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-validation</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+        <!-- Basisprofile für FHIR Validation-->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-validation-resources-r4</artifactId>
             <version>5.4.0</version>
         </dependency>
         <!-- Spring Boot Starter-Abhängigkeit für grundlegende Spring Boot-Funktionen -->
@@ -60,6 +78,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <!-- SLF4J API für erweiterte Logging Funktionen-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.32</version> <!-- Verwende die neueste Version -->
+        </dependency>
+        <!-- SLF4J Simple Binding (für einfache Konfiguration) -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.32</version> <!-- Verwende die neueste Version -->
         </dependency>
     </dependencies>
 

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Schema for creating a new document",
+  "type": "object",
+  "properties": {
+    "kdlCode": {
+      "type": "string"
+    },
+    "patientId": {
+      "type": "number"
+    },
+    "visitNumber": {
+      "type": "number"
+    },
+    "dateCreated": {
+      "type": "string"
+    },
+    "contentB64": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "kdlCode",
+    "patientId",
+    "visitNumber",
+    "dateCreated",
+    "contentB64"
+  ]
+}
