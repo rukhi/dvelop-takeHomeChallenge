@@ -61,7 +61,7 @@ Verwenden Sie Postman, um Ihre API-Endpunkte zu testen. Folgen Sie diesen Schrit
 
 3. Patient erstellen: <br />
     Wählen Sie den HTTP-Methodentyp `POST` aus. <br />
-    Geben Sie die URL Ihres Endpunkts ein: `http://localhost:8080/fhir/Person`. <br />
+    Geben Sie die URL Ihres Endpunkts ein: `http://localhost:8080/fhir/Patient`. <br />
     Stellen Sie sicher, dass der Endpunkt Ihrer laufenden Spring Boot Anwendung entspricht.
 
 4. Header hinzufügen: <br />
@@ -73,7 +73,7 @@ Verwenden Sie Postman, um Ihre API-Endpunkte zu testen. Folgen Sie diesen Schrit
     Stellen Sie sicher, dass der Datentyp auf JSON gesetzt ist. <br />
     Fügen Sie den Inhalt Ihrer Beispiel-FHIR-Ressource `Beispiel-FHIR-Ressource-Patient.json` in das Textfeld ein als Anfragekörper.
 
-    Hinweis: um das JSON-Schema für den Endpunkt zu prüfen, steht die GET-Methode `http://localhost:8080/fhir/Person\schema` zur Verfügung.  
+    Hinweis: um das JSON-Schema für den Endpunkt zu prüfen, steht die GET-Methode `http://localhost:8080/fhir/Patient\schema` zur Verfügung.  
 
 6. Anfrage senden: <br />
     Klicken Sie auf `Send`, um die Anfrage zu senden. Postman wird die Anfrage an Ihren Endpunkt schicken und die Antwort anzeigen.
@@ -135,17 +135,20 @@ Das Projekt ist in mehrere Pakete unterteilt, um eine klare Trennung der Verantw
         - DocumentReferenceService.java: 
         - PatientService.java: Verarbeitet Patientendaten und validiert FHIR-Objekte.  
         - PersonSchemaService.java: 
-        - ProprietaryApiService.java: Kommuniziert mit einer externen proprietären API.  
+        - ProprietaryApiService.java: Kommuniziert mit einer externen proprietären API. 
+        - FhirResponseService.java: Erstellt standardisierte FHIR-Antworten.   
+        - FhirValidatorService.java: Validierung von FHIR Resourcen, ValueSets, CodeSysteme...
 
     util: Helferklassen zur Unterstützung der Hauptlogik.  
         - FhirMessages.java: Enthält vordefinierte FHIR-Fehlermeldungen.  
-        - FhirResponseHandler.java: Erstellt standardisierte FHIR-Antworten.  
-        - jsonSchemaUtil.java: Stellt JSON-Schema für proprietäre API Endpunkte zur Verfügung
+        - JsonSchemaUtil.java: Stellt JSON-Schema für proprietäre API Endpunkte zur Verfügung
 
     resources: Enthält Konfigurations- und Schema-Dateien.  
         - application.properties: Konfigurationsdatei für die Anwendung.  
         - example: Anfragekörper für Beispiel-FHIR-Ressourcen
         - schemas: JSON-Schema für proprietäre API Endpunkte 
+        - fhir: Spezielle Ressourcen (Structure Definition, CodeSystems etc..) zur Validierung, die nicht
+                in den HAPI Fhir Bibliotheken bekannt sind (Gematik, dvmd...)
 
 
 ## Fehlerbehandlung

@@ -39,10 +39,28 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- HAPI FHIR-Abhängigkeit-->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-base</artifactId>
+            <version>5.4.0</version>
+        </dependency>
         <!-- HAPI FHIR-Abhängigkeit für FHIR-R4-Strukturen -->
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-structures-r4</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+        <!-- HAPI FHIR-Abhängigkeiten für FHIR Validation-->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-validation</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+        <!-- Basisprofile für FHIR Validation-->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-validation-resources-r4</artifactId>
             <version>5.4.0</version>
         </dependency>
         <!-- Spring Boot Starter-Abhängigkeit für grundlegende Spring Boot-Funktionen -->

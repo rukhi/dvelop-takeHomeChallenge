@@ -50,7 +50,7 @@ public class ProprietaryApiService {
      *         aufgetreten ist
      */
     public boolean sendPatientData(PersonDTO personDTO) {
-        return sendData(personDTO, "/Patient");
+        return sendData(personDTO, "/Person");
     }
 
     /**

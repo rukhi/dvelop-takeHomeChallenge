@@ -17,7 +17,7 @@ import com.example.demo.service.PatientService;
 import com.example.demo.dto.DocumentDTO;
 import com.example.demo.dto.PersonDTO;
 
-import com.example.demo.util.FhirResponseHandler;
+import com.example.demo.service.FhirResponseService;
 import com.example.demo.util.JsonSchemaUtil;
 import com.example.demo.util.FhirMessages;
 
@@ -35,6 +35,7 @@ public class FhirController {
     private final ProprietaryApiService proprietaryApiService;
     private final PatientService patientService;
     private final DocumentReferenceService documentReferenceService;
+    private final FhirResponseService fhirResponseService;
     private final IParser jsonParser;
 
     /**
@@ -50,11 +51,13 @@ public class FhirController {
     public FhirController(IParser jsonParser,
             ProprietaryApiService proprietaryApiService,
             PatientService patientService,
-            DocumentReferenceService documentReferenceService) {
+            DocumentReferenceService documentReferenceService,
+            FhirResponseService fhirResponseService) {
         this.jsonParser = jsonParser;
         this.proprietaryApiService = proprietaryApiService;
         this.patientService = patientService;
         this.documentReferenceService = documentReferenceService;
+        this.fhirResponseService = fhirResponseService;
     }
 
     /**
@@ -65,18 +68,12 @@ public class FhirController {
      * 
      *         Beispiel: POST http://localhost:8080/fhir/Person
      */
-    @PostMapping("/Person") // Mapped HTTP POST-Anfragen auf diesen Endpunkt
+    @PostMapping("/Patient") // Mapped HTTP POST-Anfragen auf diesen Endpunkt
     public ResponseEntity<String> createPatient(@RequestBody String patientResource) {
         logger.info("Received request to create a new patient. ");
-
         try {
             // Parsen des Patient-Ressource-Strings in ein Patient-Objekt
             Patient patient = jsonParser.parseResource(Patient.class, patientResource);
-
-            // ->neu // Validierung der Patient-Ressource
-            if (!patientService.isValid(patient)) {
-                return FhirResponseHandler.handleValidationFailure(FhirMessages.INVALID_PATIENT_RESOURCE);
-            }
 
             // Verarbeitung der Patient-Ressource mit DTO
             PersonDTO personDTO = patientService.processPatient(patient);
@@ -88,16 +85,16 @@ public class FhirController {
                 // Loggt und gibt eine Erfolgsantwort zurück, wenn die API-Anfrage erfolgreich
                 // war
                 logger.info("Patient data sent successfully.");
-                return FhirResponseHandler.createSuccessResponse(FhirMessages.PATIENT_CREATED);
+                return fhirResponseService.createSuccessResponse(FhirMessages.PATIENT_CREATED);
             } else {
                 // Loggt und gibt eine Fehlerantwort zurück, wenn die API-Anfrage fehlschlägt
-                return FhirResponseHandler.handleException(
+                return fhirResponseService.handleException(
                         new RuntimeException("API failure"),
                         FhirMessages.API_FAILURE);
             }
         } catch (Exception e) {
             // Loggt und gibt eine Fehlerantwort zurück, wenn eine Ausnahme auftritt
-            return FhirResponseHandler.handleException(e, FhirMessages.INTERNAL_SERVER_ERROR);
+            return fhirResponseService.handleException(e, FhirMessages.INTERNAL_SERVER_ERROR);
             // *Bianca Rech:
             // *mein innerer Monk würde hier gerne genauere Fehlerbehandlung einbauen,
             // *aber das wurde ja in den Anforderungen explizit nicht gefordert ;)
@@ -114,19 +111,19 @@ public class FhirController {
         try {
             DocumentReference documentReference = jsonParser.parseResource(DocumentReference.class, documentResource);
             if (!documentReferenceService.isValid(documentReference)) {
-                return FhirResponseHandler.handleValidationFailure(FhirMessages.INVALID_DOCUMENT_RESOURCE);
+                return fhirResponseService.handleValidationFailure(FhirMessages.INVALID_DOCUMENT_RESOURCE);
             }
             DocumentDTO documentDTO = documentReferenceService.processDocumentReference(documentReference);
             boolean apiSuccess = proprietaryApiService.sendDocumentData(documentDTO);
             if (apiSuccess) {
                 logger.info("DocumentReference data sent successfully.");
-                return FhirResponseHandler.createSuccessResponse(FhirMessages.DOCUMENT_CREATED);
+                return fhirResponseService.createSuccessResponse(FhirMessages.DOCUMENT_CREATED);
             } else {
-                return FhirResponseHandler.handleException(new RuntimeException("API failure"),
+                return fhirResponseService.handleException(new RuntimeException("API failure"),
                         FhirMessages.API_FAILURE);
             }
         } catch (Exception e) {
-            return FhirResponseHandler.handleException(e, FhirMessages.INTERNAL_SERVER_ERROR);
+            return fhirResponseService.handleException(e, FhirMessages.INTERNAL_SERVER_ERROR);
              // *Bianca Rech:
             // *mein innerer Monk würde hier gerne genauere Fehlerbehandlung einbauen,
             // *aber das wurde ja in den Anforderungen explizit nicht gefordert ;)
@@ -142,7 +139,7 @@ public class FhirController {
      *  Beispiel GET http://localhost:8080/fhir/Person/schema
      */
     
-    @GetMapping("/Person/schema")
+    @GetMapping("/Patient/schema")
     public ResponseEntity<String> getPersonSchema() {
         return JsonSchemaUtil.getSchemaResponse("person");
     }

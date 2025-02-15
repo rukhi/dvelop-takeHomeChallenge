@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.hl7.fhir.r4.model.Patient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.PersonDTO;
@@ -13,14 +14,16 @@ public class PatientService {
 
     private static final Logger logger = Logger.getLogger(PatientService.class.getName());
 
-    // Validierung der Daten im Patientenobjekt
+    // Hier injizieren wir unsere "echte" Validator-Bean
+    private final FhirValidatorService fhirValidatorService;
+
+    @Autowired
+    public PatientService(FhirValidatorService fhirValidatorService) {
+        this.fhirValidatorService = fhirValidatorService;
+    }
+
+    // Überprüft ob das Patientenobjekt gültige Daten enthält
     public boolean isValid(Patient patient) {
-        // Als Beispiel mal so rudimentär umgestzt
-        // eine Validierung gegen die Implementation Guides wäre hier sinnvoll,
-        // in der Kürze der 24h für mich aber nicht sinnvoll umsetzbar ;)
-        // falls am Ende doch Zeit ist, komme ich hier nochmal darauf zurück
-        //
-        // würde es dann auch auslagern in eine eigene Klasse !
         if (patient == null) {
             logger.warning("Patient is null");
             return false;
@@ -51,6 +54,14 @@ public class PatientService {
 
     // Konvertiert ein gültiges Patient-Objekt in ein PersonDTO-Objekt
     public PersonDTO processPatient(Patient patient) {
+         if (!isValid(patient)) {
+            throw new IllegalArgumentException("Invalid Patient data");
+        }
+        
+        // Erweiterte Validierung: Überprüfung gegen die ISiKPatient StructureDefinition.
+        // Wird die Validierung nicht bestanden, wirft FhirInstanceValidatorUtil eine Exception.
+        fhirValidatorService.validateIsikPatient(patient);
+
         // Extrahieren des Vornamens aus der Patient-Ressource
         String firstName = patient.getName().get(0).getGiven().stream()
                 .map(namePart -> namePart.getValue())
