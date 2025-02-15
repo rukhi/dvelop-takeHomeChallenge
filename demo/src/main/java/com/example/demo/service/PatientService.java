@@ -50,11 +50,6 @@ public class PatientService {
             return false;
         }
 
-       // Reinkommentieren nur fürs Debugging, sensible Patientendaten sollten nicht geloggt werden
-       //logger.debug("Extracted patient data: " + patient.getName().get(0).getGiven().stream()
-       //         .map(namePart -> namePart.getValue()).collect(Collectors.joining(" ")) + " "
-       //         + patient.getName().get(0).getFamily() + ", Birthdate: " + patient.getBirthDate());
-
         return true;
     }
 
@@ -80,10 +75,7 @@ public class PatientService {
         String birthDate = convertDate(patient.getBirthDateElement().getValueAsString());
 
         // Loggt die extrahierten und konvertierten Patientendaten
-        // Achtung: nur zum Testen auskommentieren, sensible Patientendaten sollten
-        // nicht geloggt werden
-        // logger.info("Parsed patient data: " + firstName + " " + lastName + ",
-        // Birthdate: " + birthDate);
+        logger.debug("Parsed patient data: {} {}, Birthdate: {}", firstName, lastName, birthDate);
 
         // Rückgabe eines PersonDTO-Objekts
         return new PersonDTO(firstName, lastName, birthDate);
