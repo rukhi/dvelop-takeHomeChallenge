@@ -9,15 +9,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.example.demo.dto.DocumentDTO;
 import com.example.demo.dto.PersonDTO;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 
 @Service // Kennzeichnet diese Klasse als Spring Service-Komponente
 public class ProprietaryApiService {
 
-    private static final Logger logger = Logger.getLogger(ProprietaryApiService.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ProprietaryApiService.class);
 
     // WebClient für nicht-blockierende API-Aufrufe
     private final WebClient.Builder webClientBuilder;
@@ -35,11 +35,12 @@ public class ProprietaryApiService {
     private void initWebClient() {
         // Fehler abfangen: Überprüfen, ob `apiUrl` korrekt gesetzt wurde
         if (apiUrl == null || apiUrl.isBlank()) {
+            logger.error("API URL is missing or blank. Check application.properties.");
             throw new IllegalStateException("API URL is not set! Check application.properties.");
         }
 
         this.webClient = webClientBuilder.baseUrl(apiUrl).build();
-        logger.info("WebClient initialized with base URL: " + apiUrl);
+        logger.info("WebClient initialized with base URL: {}", apiUrl);
     }
 
     /**
@@ -76,8 +77,9 @@ public class ProprietaryApiService {
         try {
             // Loggt die URL und den Anfragekörper
             String requestUrl = apiUrl + endpoint;
-            logger.info("Sending request to proprietary API: " + requestUrl);
-            // logger.info("Request body: " + data); // Auskommentiert, da der Anfragekörper
+            logger.info("Sending request to proprietary API: {}", requestUrl);
+            long startTime = System.currentTimeMillis();
+            // logger.debug("Request body: " + data); // Auskommentiert, da der Anfragekörper
             // sensibele Daten enhalten könnte, nur zum Testen auskommentieren
 
             // Sendet eine POST-Anfrage an die proprietäre API mit WebClient
@@ -88,21 +90,24 @@ public class ProprietaryApiService {
                     .toEntity(String.class)
                     .block();
 
-            // Loggt den Statuscode der Antwort
-            logger.info("Response from proprietary API: " + response.getStatusCode());
+            // Loggt den Statuscode der Antwort & ANtwortzeit
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("Response received in {} ms with status: {}", duration, response.getStatusCode());
             HttpStatus statusCode = response.getStatusCode();
+
 
             // Akzeptiere sowohl 200 (OK) als auch 201 (Created) als erfolgreichen Status
             if (statusCode == HttpStatus.OK || statusCode == HttpStatus.CREATED) {
+                logger.info("Data successfully sent to proprietary API: Endpoint={}, Status={}", endpoint, statusCode);
                 return true;
             } else {
                 // Loggt einen Fehler, wenn der Statuscode nicht 200 oder 201 ist
-                logger.severe("Proprietary API returned an error: " + response.getBody());
+                logger.error("Proprietary API error - Status: {}, Response: {}", statusCode, response.getBody());
                 return false;
             }
         } catch (Exception e) {
             // Loggt eine Ausnahme, falls eine auftritt
-            logger.log(Level.SEVERE, "Exception occurred while sending data", e);
+            logger.error("Exception occurred while sending data to endpoint {}", endpoint, e);
             return false;
         }
     }

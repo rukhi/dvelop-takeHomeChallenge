@@ -3,7 +3,8 @@ package com.example.demo.service;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ import ca.uhn.fhir.context.support.DefaultProfileValidationSupport;
 @Service
 public class FhirValidatorService {
 
-    private static final Logger logger = Logger.getLogger(FhirValidatorService.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(FhirValidatorService.class);
 
     private final FhirContext fhirContext;
     private final IParser jsonParser;
@@ -57,49 +58,8 @@ public class FhirValidatorService {
         try (InputStream is = new ClassPathResource(resourcePath).getInputStream()) {
             return StreamUtils.copyToString(is, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            logger.severe("Error reading resource file: " + resourcePath);
+            logger.error("Fehler beim Lesen der Ressourcendatei: {}", resourcePath, e);
             throw new RuntimeException("Error reading resource file: " + resourcePath, e);
-        }
-    }
-
-    /**
-     * Validiert eine Ressource gegen ein lokales ValueSet.
-     *
-     * @param resource     Die zu validierende FHIR-Ressource.
-     * @param valueSetPath Der Classpath-Pfad zum ValueSet (z. B. "fhir/valuesets/valueset-kdl-2021.json").
-     * @throws IllegalArgumentException falls die Validierung fehlschlägt.
-     */
-    public void validateResourceAgainstValueSet(IBaseResource resource, String valueSetPath) {
-        String valueSetContent = readResourceFile(valueSetPath);
-        ValueSet valueSet = (ValueSet) jsonParser.parseResource(valueSetContent);
-
-        PrePopulatedValidationSupport prePopulatedSupport = new PrePopulatedValidationSupport(fhirContext);
-        prePopulatedSupport.addValueSet(valueSet);
-
-        ValidationSupportChain supportChain = new ValidationSupportChain(
-                new DefaultProfileValidationSupport(fhirContext),
-                new SnapshotGeneratingValidationSupport(fhirContext),
-                prePopulatedSupport,
-                new CommonCodeSystemsTerminologyService(fhirContext),
-                new InMemoryTerminologyServerValidationSupport(fhirContext)
-        );
-
-        FhirInstanceValidator instanceValidator = new FhirInstanceValidator(supportChain);
-        FhirValidator validator = fhirContext.newValidator();
-        validator.registerValidatorModule(instanceValidator);
-
-        ValidationResult result = validator.validateWithResult(resource);
-        if (!result.isSuccessful()) {
-            StringBuilder errorMessages = new StringBuilder();
-            for (SingleValidationMessage message : result.getMessages()) {
-                errorMessages.append(message.getSeverity())
-                        .append(" - ")
-                        .append(message.getLocationString())
-                        .append(" : ")
-                        .append(message.getMessage())
-                        .append("\n");
-            }
-            throw new IllegalArgumentException("FHIR validation failed against ValueSet:\n" + errorMessages.toString());
         }
     }
 
@@ -140,6 +100,7 @@ public class FhirValidatorService {
                         .append(message.getMessage())
                         .append("\n");
             }
+            logger.error("Validierung gegen StrcutureDefinition '{}' fehlgeschlagen!", structureDefinitionPath);
             throw new IllegalArgumentException("FHIR validation failed against StructureDefinition:\n" + errorMessages);
         }
     }
@@ -160,6 +121,7 @@ public class FhirValidatorService {
 
         boolean foundInCS = checkCodeInCodeSystem(kdlCodeSystem, code);
         if (!foundInCS) {
+            logger.error("KDL-Code '{}' ist nicht im CodeSystem definiert!", code);
             throw new IllegalArgumentException("KDL-Code '" + code + "' ist nicht im CodeSystem definiert!");
         }
 
@@ -172,6 +134,7 @@ public class FhirValidatorService {
 
         boolean foundInVS = checkCodeInValueSet(kdlValueSet, code);
         if (!foundInVS) {
+            logger.error("KDL-Code '{}' ist nicht im ValueSet enthalten!", code);
             throw new IllegalArgumentException("KDL-Code '" + code + "' ist nicht im ValueSet enthalten!");
         }
 

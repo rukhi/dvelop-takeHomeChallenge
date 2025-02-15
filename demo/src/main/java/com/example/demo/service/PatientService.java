@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
 
 import org.hl7.fhir.r4.model.Patient;
@@ -12,7 +13,7 @@ import com.example.demo.dto.PersonDTO;
 @Service // Kennzeichnet diese Klasse als Spring Service-Komponente
 public class PatientService {
 
-    private static final Logger logger = Logger.getLogger(PatientService.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(PatientService.class);
 
     // Hier injizieren wir unsere "echte" Validator-Bean
     private final FhirValidatorService fhirValidatorService;
@@ -25,29 +26,34 @@ public class PatientService {
     // Überprüft ob das Patientenobjekt gültige Daten enthält
     public boolean isValid(Patient patient) {
         if (patient == null) {
-            logger.warning("Patient is null");
+            logger.warn("Patient is null");
             return false;
         }
 
         if (patient.getName() == null || patient.getName().isEmpty()) {
-            logger.warning("Patient name is missing");
+            logger.warn("Patient name is missing");
             return false;
         }
 
         if (patient.getName().get(0).getGiven() == null || patient.getName().get(0).getGiven().isEmpty()) {
-            logger.warning("Patient given name is missing");
+            logger.warn("Patient given name is missing");
             return false;
         }
 
         if (patient.getName().get(0).getFamily() == null || patient.getName().get(0).getFamily().isEmpty()) {
-            logger.warning("Patient family name is missing");
+            logger.warn("Patient family name is missing");
             return false;
         }
 
         if (patient.getBirthDate() == null) {
-            logger.warning("Patient birth date is missing");
+            logger.warn("Patient birth date is missing");
             return false;
         }
+
+       // Reinkommentieren nur fürs Debugging, sensible Patientendaten sollten nicht geloggt werden
+       //logger.debug("Extracted patient data: " + patient.getName().get(0).getGiven().stream()
+       //         .map(namePart -> namePart.getValue()).collect(Collectors.joining(" ")) + " "
+       //         + patient.getName().get(0).getFamily() + ", Birthdate: " + patient.getBirthDate());
 
         return true;
     }

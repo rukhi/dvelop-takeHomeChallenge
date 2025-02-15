@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
@@ -23,7 +23,7 @@ import ca.uhn.fhir.context.FhirContext;
 @Service
 public class FhirResponseService {
 
-    private static final Logger logger = Logger.getLogger(FhirResponseService.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(FhirResponseService.class);
 
     private final FhirContext fhirContext;
 
@@ -44,7 +44,7 @@ public class FhirResponseService {
      * @return Eine ResponseEntity mit `OperationOutcome` und HTTP-Status 500.
      */
     public ResponseEntity<String> handleException(Exception e, String message) {
-        logger.log(Level.SEVERE, message, e);
+        logger.error("Exception occurred - HTTP 500: {}", message, e);
         return createOperationOutcomeResponse(message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -55,7 +55,7 @@ public class FhirResponseService {
      * @return Eine ResponseEntity mit `OperationOutcome` und HTTP-Status 400.
      */
     public ResponseEntity<String> handleValidationFailure(String message) {
-        logger.warning(message);
+        logger.warn("Validation failed - HTTP 400: {}", message);
         return createOperationOutcomeResponse(message, HttpStatus.BAD_REQUEST);
     }
 
@@ -73,6 +73,7 @@ public class FhirResponseService {
             .setDiagnostics(message);
 
         String outcomeJson = fhirContext.newJsonParser().encodeResourceToString(outcome);
+        logger.info("FHIR response created successfully - HTTP 201: {}", message);
         return ResponseEntity.status(HttpStatus.CREATED).body(outcomeJson);
     }
 
@@ -92,6 +93,7 @@ public class FhirResponseService {
             .setDiagnostics(message);
 
         String outcomeJson = fhirContext.newJsonParser().encodeResourceToString(outcome);
+        logger.debug("Created OperationOutcome response: status={}, message={}", status, message);
         return ResponseEntity.status(status).body(outcomeJson);
     }
 }

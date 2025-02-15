@@ -21,7 +21,8 @@ import com.example.demo.service.FhirResponseService;
 import com.example.demo.util.JsonSchemaUtil;
 import com.example.demo.util.FhirMessages;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST Controller für FHIR-Anfragen
@@ -30,7 +31,7 @@ import java.util.logging.Logger;
 @RequestMapping("/fhir") // Basis-URL für alle Endpunkte in dieser Klasse
 public class FhirController {
 
-    private static final Logger logger = Logger.getLogger(FhirController.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(FhirController.class);
 
     private final ProprietaryApiService proprietaryApiService;
     private final PatientService patientService;
@@ -82,18 +83,19 @@ public class FhirController {
             boolean apiSuccess = proprietaryApiService.sendPatientData(personDTO);
 
             if (apiSuccess) {
-                // Loggt und gibt eine Erfolgsantwort zurück, wenn die API-Anfrage erfolgreich
-                // war
+                // Loggt und gibt Erfolgsantwort zurück, wenn die API-Anfrage erfolgreich war
                 logger.info("Patient data sent successfully.");
                 return fhirResponseService.createSuccessResponse(FhirMessages.PATIENT_CREATED);
             } else {
                 // Loggt und gibt eine Fehlerantwort zurück, wenn die API-Anfrage fehlschlägt
+                logger.warn("Failed to send patient data to API.");
                 return fhirResponseService.handleException(
                         new RuntimeException("API failure"),
                         FhirMessages.API_FAILURE);
             }
         } catch (Exception e) {
             // Loggt und gibt eine Fehlerantwort zurück, wenn eine Ausnahme auftritt
+            logger.error("Unexpected error while processing patient request", e);
             return fhirResponseService.handleException(e, FhirMessages.INTERNAL_SERVER_ERROR);
             // *Bianca Rech:
             // *mein innerer Monk würde hier gerne genauere Fehlerbehandlung einbauen,
@@ -104,25 +106,38 @@ public class FhirController {
 
     /**
      * Erstellt ein neues Dokument in der proprietären API.
+     * 
+     * @param documentResource Die DocumentReference-Ressource als JSON-String
+     * @return Eine HTTP-Antwort, die den Erfolg oder Misserfolg der Anfrage anzeigt
+     * 
+     *         Beispiel: POST http://localhost:8080/fhir/DocumentReference
      */
     @PostMapping("/DocumentReference")
     public ResponseEntity<String> createDocumentReference(@RequestBody String documentResource) {
         logger.info("Received request to create a new document.");
         try {
+            // Parsen des DocumentReference-Ressource-Strings in ein Patient-Objekt
             DocumentReference documentReference = jsonParser.parseResource(DocumentReference.class, documentResource);
-            if (!documentReferenceService.isValid(documentReference)) {
-                return fhirResponseService.handleValidationFailure(FhirMessages.INVALID_DOCUMENT_RESOURCE);
-            }
+            
+            // Verarbeitung der Document-Ressource mit DTO
             DocumentDTO documentDTO = documentReferenceService.processDocumentReference(documentReference);
+
+            // Sendet die Dokumentdaten an die proprietäre API
             boolean apiSuccess = proprietaryApiService.sendDocumentData(documentDTO);
+
             if (apiSuccess) {
+                // Loggt und gibt Erfolgsantwort zurück, wenn die API-Anfrage erfolgreich war
                 logger.info("DocumentReference data sent successfully.");
                 return fhirResponseService.createSuccessResponse(FhirMessages.DOCUMENT_CREATED);
             } else {
+                 // Loggt und gibt eine Fehlerantwort zurück, wenn die API-Anfrage fehlschlägt
+                logger.warn("Failed to send DocumentReference");
                 return fhirResponseService.handleException(new RuntimeException("API failure"),
                         FhirMessages.API_FAILURE);
             }
         } catch (Exception e) {
+            // Loggt und gibt eine Fehlerantwort zurück, wenn eine Ausnahme auftritt
+            logger.error("Unexpected error while processing document request", e);
             return fhirResponseService.handleException(e, FhirMessages.INTERNAL_SERVER_ERROR);
              // *Bianca Rech:
             // *mein innerer Monk würde hier gerne genauere Fehlerbehandlung einbauen,
@@ -133,8 +148,6 @@ public class FhirController {
 
     /**
      * Gibt das JSON-Schema für die Person-Ressource zurück.
-     * 
-     * @return
      * "quick & dirty" in anbetracht der Zeit ;) fühlt sich aber sinnvoll an
      *  Beispiel GET http://localhost:8080/fhir/Person/schema
      */
